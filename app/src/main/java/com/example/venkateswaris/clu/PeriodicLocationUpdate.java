@@ -10,12 +10,15 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.TimePicker;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 
 
@@ -23,18 +26,31 @@ public class PeriodicLocationUpdate extends ActionBarActivity {
 
     private PendingIntent pIntent = null;
     private AlarmManager alarmService = null;
+    private String fileName = "runningService";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         alarmService=  (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        AddScheduledTasksToView(null);
+        RefreshScheduledTaskStatusInView();
     }
 
-    private void AddScheduledTasksToView(List<String> scheduledTasks) {
+    private void RefreshScheduledTaskStatusInView() {
         TimePicker timePicker = (TimePicker) findViewById(R.id.timePicker);
         timePicker.setIs24HourView(true);
+        Button stopTrackButton = (Button) findViewById(R.id.stop);
+        TextView runningTaskTextView = (TextView) findViewById(R.id.running_task);
+        if(isServiceScheduled()) {
+            runningTaskTextView.setText("one job is running");
+            runningTaskTextView.setVisibility(View.VISIBLE);
+            stopTrackButton.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            runningTaskTextView.setVisibility(View.INVISIBLE);
+            stopTrackButton.setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override
@@ -48,6 +64,50 @@ public class PeriodicLocationUpdate extends ActionBarActivity {
         TimePicker timePicker = (TimePicker) findViewById(R.id.timePicker);
         int scheduledPeriodInMilliseconds = getInMilliseconds(timePicker.getCurrentHour(), timePicker.getCurrentMinute());
         schedulePeriodicTask(phoneEditText.getText().toString(), scheduledPeriodInMilliseconds);
+        logAsServiceRunning();
+        RefreshScheduledTaskStatusInView();
+    }
+
+    public void stopPeriodicTask(View view){
+        Log.i("","Stopped Tracking");
+        alarmService.cancel(pIntent);
+        removeServiceStatusLog();
+        RefreshScheduledTaskStatusInView();
+    }
+
+    private void removeServiceStatusLog() {
+        File dir = getFilesDir();
+        File file = new File(dir, fileName);
+        boolean deleted = file.delete();
+    }
+
+    private boolean isServiceScheduled() {
+        try {
+            FileInputStream fileOutputStream = openFileInput(fileName);
+            int serviceIdSize = 4;
+            byte[] buffer = new byte[serviceIdSize];
+            fileOutputStream.read(buffer, 0, serviceIdSize);
+            String runningServiceId = new String(buffer, Charset.defaultCharset());
+            if(runningServiceId.equals(CLUServiceBroadcastReceiver.REQUEST_CODE+"")) {
+                System.out.println(runningServiceId);
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void logAsServiceRunning() {
+        FileOutputStream outputStream;
+
+        try {
+            outputStream = openFileOutput(fileName, Context.MODE_PRIVATE);
+            outputStream.write((CLUServiceBroadcastReceiver.REQUEST_CODE+"").getBytes());
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private int getInMilliseconds(Integer currentHour, Integer currentMinute) {
@@ -63,10 +123,6 @@ public class PeriodicLocationUpdate extends ActionBarActivity {
         alarmService.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), intervalMillis, pIntent);
     }
 
-    public void stopPeriodicTask(View view){
-        Log.i("","Stopped Tracking");
-        alarmService.cancel(pIntent);
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

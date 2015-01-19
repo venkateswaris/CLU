@@ -24,9 +24,8 @@
         android:id="@+id/stop"
         android:onClick="stopPeriodicTask"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="44dp" />
+        android:layout_alignRight="@+id/timePicker"
+        android:layout_alignEnd="@+id/timePicker" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -83,7 +82,7 @@
         android:layout_alignLeft="@+id/editText"
         android:layout_alignStart="@+id/editText" />
 
-    <EditText
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/running_task"
