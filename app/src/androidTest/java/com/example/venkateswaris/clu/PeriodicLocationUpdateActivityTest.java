@@ -5,12 +5,12 @@ import android.test.ActivityUnitTestCase;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.widget.Button;
 
-public class PeriodicLocationUpdateTest extends ActivityUnitTestCase<PeriodicLocationUpdate> {
+public class PeriodicLocationUpdateActivityTest extends ActivityUnitTestCase<PeriodicLocationUpdateActivity> {
 
 
-    PeriodicLocationUpdate activity;
-    public PeriodicLocationUpdateTest() {
-        super(PeriodicLocationUpdate.class);
+    PeriodicLocationUpdateActivity activity;
+    public PeriodicLocationUpdateActivityTest() {
+        super(PeriodicLocationUpdateActivity.class);
     }
 
     @Override

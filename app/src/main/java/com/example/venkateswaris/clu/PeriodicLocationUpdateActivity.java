@@ -19,10 +19,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.Charset;
-import java.util.List;
 
 
-public class PeriodicLocationUpdate extends ActionBarActivity {
+public class PeriodicLocationUpdateActivity extends ActionBarActivity {
 
     private PendingIntent pIntent = null;
     private AlarmManager alarmService = null;
@@ -41,8 +40,9 @@ public class PeriodicLocationUpdate extends ActionBarActivity {
         timePicker.setIs24HourView(true);
         Button stopTrackButton = (Button) findViewById(R.id.stop);
         TextView runningTaskTextView = (TextView) findViewById(R.id.running_task);
-        if(isServiceScheduled()) {
-            runningTaskTextView.setText("one job is running");
+        String scheduledServiceDetails = getScheduledServiceDetail();
+        if(scheduledServiceDetails != null) {
+            runningTaskTextView.setText(scheduledServiceDetails);
             runningTaskTextView.setVisibility(View.VISIBLE);
             stopTrackButton.setVisibility(View.VISIBLE);
         }
@@ -62,9 +62,12 @@ public class PeriodicLocationUpdate extends ActionBarActivity {
     public void startTrack(View view){
         EditText phoneEditText = (EditText) findViewById(R.id.phone_text);
         TimePicker timePicker = (TimePicker) findViewById(R.id.timePicker);
-        int scheduledPeriodInMilliseconds = getInMilliseconds(timePicker.getCurrentHour(), timePicker.getCurrentMinute());
-        schedulePeriodicTask(phoneEditText.getText().toString(), scheduledPeriodInMilliseconds);
-        logAsServiceRunning();
+        Integer scheduledHour = timePicker.getCurrentHour();
+        Integer scheduledMinute = timePicker.getCurrentMinute();
+        int scheduledPeriodInMilliseconds = getInMilliseconds(scheduledHour, scheduledMinute);
+        String phoneNumber = phoneEditText.getText().toString();
+        schedulePeriodicTask(phoneNumber, scheduledPeriodInMilliseconds);
+        logAsServiceRunning(phoneNumber,scheduledHour,scheduledMinute);
         RefreshScheduledTaskStatusInView();
     }
 
@@ -78,32 +81,27 @@ public class PeriodicLocationUpdate extends ActionBarActivity {
     private void removeServiceStatusLog() {
         File dir = getFilesDir();
         File file = new File(dir, fileName);
-        boolean deleted = file.delete();
+        file.delete();
     }
 
-    private boolean isServiceScheduled() {
+    private String getScheduledServiceDetail() {
         try {
             FileInputStream fileOutputStream = openFileInput(fileName);
-            int serviceIdSize = 4;
+            int serviceIdSize = 1024;
             byte[] buffer = new byte[serviceIdSize];
             fileOutputStream.read(buffer, 0, serviceIdSize);
-            String runningServiceId = new String(buffer, Charset.defaultCharset());
-            if(runningServiceId.equals(CLUServiceBroadcastReceiver.REQUEST_CODE+"")) {
-                System.out.println(runningServiceId);
-                return true;
-            }
+            String runningServiceDetails = new String(buffer, Charset.defaultCharset());
+            return runningServiceDetails;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return false;
+        return null;
     }
 
-    private void logAsServiceRunning() {
-        FileOutputStream outputStream;
-
+    private void logAsServiceRunning(String phoneNumber, int scheduledHour, int scheduledMinute) {
         try {
-            outputStream = openFileOutput(fileName, Context.MODE_PRIVATE);
-            outputStream.write((CLUServiceBroadcastReceiver.REQUEST_CODE+"").getBytes());
+            FileOutputStream outputStream = openFileOutput(fileName, Context.MODE_PRIVATE);
+            outputStream.write(("Job is scheduled to send \n message to " + phoneNumber + "\nin the interval of\n" + scheduledHour + ":" + scheduledMinute + " Hour").getBytes());
             outputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
