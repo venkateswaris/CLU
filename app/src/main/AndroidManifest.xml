@@ -8,7 +8,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/app_image"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <receiver
@@ -16,10 +16,14 @@
             android:process=":remote" >
         </receiver>
 
-        <activity
+        <activity android:theme="@style/Theme.AppCompat.Light"
             android:name=".PeriodicLocationUpdateActivity"
             android:exported="true"
-            android:label="@string/title_activity_main" >
+            android:label="@string/title_activity_main">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <service
