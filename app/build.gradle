@@ -13,6 +13,20 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    signingConfigs {
+        release {
+            storeFile file('my-release-key.keystore')
+            storePassword "changeit"
+            keyAlias 'alias_key'
+            keyPassword 'changeit'
+        }
+        debug {
+            storeFile file('keystore.jks')
+            storePassword "changeit"
+            keyAlias 'alias_key'
+            keyPassword 'changeit'
+        }
+    }
 
     buildTypes {
         release {

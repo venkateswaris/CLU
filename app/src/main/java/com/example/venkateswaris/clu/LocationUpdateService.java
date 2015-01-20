@@ -42,7 +42,7 @@ public class LocationUpdateService extends IntentService implements GoogleApiCli
         String addressString = getStringMessageFrom(address);
         Log.i("Sent sms", extras.getString("phoneNumber"));
         Log.i("address",addressString);
-//        sendSMS("9566038664",addressString);
+        sendSMS("9566038664",addressString);
         mGoogleApiClient.disconnect();
     }
 
