@@ -11,7 +11,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.v7.app.ActionBarActivity;
+import android.text.Editable;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -40,7 +42,21 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         alarmService = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         BindOnClickEventToContactButton();
+        BindOnClickEventToClearButton();
         RefreshScheduledTaskStatusInView();
+    }
+
+    private void BindOnClickEventToClearButton() {
+        Button contactButton = (Button) findViewById(R.id.clear);
+        contactButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText phone_hidden_EditBox = (EditText) findViewById(R.id.phone_number_hidden);
+                EditText contact_EditBox = (EditText) findViewById(R.id.contact_textbox);
+                phone_hidden_EditBox.setText(null);
+                contact_EditBox.setText(null);
+            }
+        });
     }
 
     private void BindOnClickEventToContactButton() {
