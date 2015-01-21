@@ -1,10 +1,15 @@
 package com.example.venkateswaris.clu;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -26,13 +31,71 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
     private PendingIntent pIntent = null;
     private AlarmManager alarmService = null;
     private String fileName = "runningService";
+    private final int requestCode = 1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        alarmService=  (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        alarmService = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        BindOnClickEventToContactButton();
         RefreshScheduledTaskStatusInView();
+    }
+
+    private void BindOnClickEventToContactButton() {
+        Button contactButton = (Button) findViewById(R.id.contact_button);
+        contactButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+                startActivityForResult(intent, requestCode);
+            }
+        });
+    }
+
+    @Override
+    public void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            Uri contactData = data.getData();
+            Cursor c = managedQuery(contactData, null, null, null, null);
+            if (c.moveToFirst()) {
+                String name = getColumnValueFromCursor(c, ContactsContract.Contacts.DISPLAY_NAME);
+                EditText contactTextBox = (EditText) findViewById(R.id.contact_textbox);
+                contactTextBox.setText(name);
+                if (Integer.parseInt(c.getString(
+                        c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
+                    String contactId = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
+                    Cursor contacts = getContacts(contactId);
+                    if(contacts.moveToFirst())
+                    {
+                        String contactNumber = getColumnValueFromCursor(contacts, ContactsContract.CommonDataKinds.Phone.NUMBER);
+                        EditText phoneNumberEditView = (EditText) findViewById(R.id.phone_number_hidden);
+                        phoneNumberEditView.setText(contactNumber);
+                    }
+                }
+            }
+        }
+    }
+
+    private String getColumnValueFromCursor(Cursor c, String columnName) {
+        return c.getString(c.getColumnIndexOrThrow(columnName));
+    }
+
+    private Cursor getContacts(String contactId) {
+        // Run query
+        Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+        String[] projection = new String[] { ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                                             ContactsContract.CommonDataKinds.Phone.NUMBER};
+        String selection = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = '"
+                + contactId + "'";
+        String[] selectionArgs = null;
+        String sortOrder = ContactsContract.Contacts.DISPLAY_NAME
+                + " COLLATE LOCALIZED ASC";
+
+        return new ContextWrapper(this).getContentResolver().query(uri, projection, selection, selectionArgs,
+                null);
     }
 
     private void RefreshScheduledTaskStatusInView() {
@@ -41,13 +104,11 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
         Button stopTrackButton = (Button) findViewById(R.id.stop);
         TextView runningTaskTextView = (TextView) findViewById(R.id.running_task);
         String scheduledServiceDetails = getScheduledServiceDetail();
-        if(scheduledServiceDetails != null) {
+        if (scheduledServiceDetails != null) {
             runningTaskTextView.setText(scheduledServiceDetails);
             runningTaskTextView.setVisibility(View.VISIBLE);
             stopTrackButton.setVisibility(View.VISIBLE);
-        }
-        else
-        {
+        } else {
             runningTaskTextView.setVisibility(View.INVISIBLE);
             stopTrackButton.setVisibility(View.INVISIBLE);
         }
@@ -59,20 +120,20 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    public void startTrack(View view){
-        EditText phoneEditText = (EditText) findViewById(R.id.phone_text);
+    public void startTrack(View view) {
+        EditText phoneEditText = (EditText) findViewById(R.id.phone_number_hidden);
         TimePicker timePicker = (TimePicker) findViewById(R.id.timePicker);
         Integer scheduledHour = timePicker.getCurrentHour();
         Integer scheduledMinute = timePicker.getCurrentMinute();
         int scheduledPeriodInMilliseconds = getInMilliseconds(scheduledHour, scheduledMinute);
         String phoneNumber = phoneEditText.getText().toString();
         schedulePeriodicTask(phoneNumber, scheduledPeriodInMilliseconds);
-        logAsServiceRunning(phoneNumber,scheduledHour,scheduledMinute);
+        logAsServiceRunning(phoneNumber, scheduledHour, scheduledMinute);
         RefreshScheduledTaskStatusInView();
     }
 
-    public void stopPeriodicTask(View view){
-        Log.i("","Stopped Tracking");
+    public void stopPeriodicTask(View view) {
+        Log.i("", "Stopped Tracking");
         alarmService.cancel(pIntent);
         removeServiceStatusLog();
         RefreshScheduledTaskStatusInView();
@@ -116,7 +177,7 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
     private void schedulePeriodicTask(String phoneNumber, int intervalMillis) {
         Intent serviceBroadCasterIntent = new Intent(this, CLUServiceBroadcastReceiver.class);
         serviceBroadCasterIntent.putExtra("phoneNumber", phoneNumber);
-         pIntent = PendingIntent.getBroadcast(this, CLUServiceBroadcastReceiver.REQUEST_CODE,
+        pIntent = PendingIntent.getBroadcast(this, CLUServiceBroadcastReceiver.REQUEST_CODE,
                 serviceBroadCasterIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         alarmService.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), intervalMillis, pIntent);
     }

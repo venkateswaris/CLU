@@ -7,5 +7,6 @@
     <string name="title_activity_service_status">ServiceStatus</string>
     <string name="hello_world">Hello world!</string>
     <string name="google_location_service_version">6.5.87</string>
+    <string name="title_activity_contact_list_view">ContactListViewActivity</string>
 
 </resources>

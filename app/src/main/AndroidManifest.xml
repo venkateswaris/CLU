@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
         android:allowBackup="true"
@@ -31,6 +32,10 @@
             android:exported="true" >
         </service>
 
+        <activity
+            android:name=".ContactListViewActivity"
+            android:label="@string/title_activity_contact_list_view" >
+        </activity>
     </application>
 
 </manifest>

@@ -21,7 +21,7 @@ android {
             keyPassword 'changeit'
         }
         debug {
-            storeFile file('keystore.jks')
+            storeFile file('my-release-key.keystore')
             storePassword "changeit"
             keyAlias 'alias_key'
             keyPassword 'changeit'
