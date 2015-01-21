@@ -3,6 +3,7 @@ package com.example.venkateswaris.clu;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -13,12 +14,12 @@ import android.provider.ContactsContract;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Editable;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
@@ -26,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 
 public class PeriodicLocationUpdateActivity extends ActionBarActivity {
@@ -34,6 +36,10 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
     private AlarmManager alarmService = null;
     private String fileName = "runningService";
     private final int requestCode = 1;
+    private ArrayList<String> phoneNumberList = new ArrayList<>();
+    private int scheduledHour = 0;
+    private int scheduledMin = 0;
+
 
 
     @Override
@@ -42,25 +48,62 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
         alarmService = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         BindOnClickEventToContactButton();
-        BindOnClickEventToClearButton();
+        BindOnClickEventToClearContactButton();
+        BindOnClickEventToClearTimeButton();
+        BindOnClickEventToSetRepeatTimeButton();
         RefreshScheduledTaskStatusInView();
     }
 
-    private void BindOnClickEventToClearButton() {
-        Button contactButton = (Button) findViewById(R.id.clear);
+    private void BindOnClickEventToClearTimeButton() {
+        Button contactButton = (Button) findViewById(R.id.clear_time);
         contactButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                EditText phone_hidden_EditBox = (EditText) findViewById(R.id.phone_number_hidden);
-                EditText contact_EditBox = (EditText) findViewById(R.id.contact_textbox);
-                phone_hidden_EditBox.setText(null);
-                contact_EditBox.setText(null);
+                TextView contactTextBox = (TextView) findViewById(R.id.repeat_time_textbox);
+                contactTextBox.setText(null);
+                scheduledMin = 0;
+                scheduledHour = 0;
+            }
+        });
+    }
+
+    private void BindOnClickEventToSetRepeatTimeButton() {
+        final Context context = this;
+        Button button = (Button) findViewById(R.id.Repeat_Time);
+        button.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                TimePickerDialog.OnTimeSetListener callback = new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        TextView repeatTimeTextBox = (TextView) findViewById(R.id.repeat_time_textbox);
+                        repeatTimeTextBox.setText(hourOfDay + ":" + minute +"hr");
+                        scheduledHour = hourOfDay;
+                        scheduledMin = minute;
+                    }
+                };
+                TimePickerDialog timePickerDialog = new TimePickerDialog(context, callback, 24, 60, true);
+                timePickerDialog.setTitle("Set Repeat Time");
+                timePickerDialog.show();
+            }
+        });
+    }
+
+    private void BindOnClickEventToClearContactButton() {
+        Button contactButton = (Button) findViewById(R.id.clear_contact);
+        contactButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView contactTextBox = (TextView) findViewById(R.id.contact_text_box);
+                contactTextBox.setText(null);
+                phoneNumberList = new ArrayList<String>();
             }
         });
     }
 
     private void BindOnClickEventToContactButton() {
-        Button contactButton = (Button) findViewById(R.id.contact_button);
+        ImageButton contactButton = (ImageButton) findViewById(R.id.contact_image_button);
         contactButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -78,8 +121,12 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
             Cursor c = managedQuery(contactData, null, null, null, null);
             if (c.moveToFirst()) {
                 String name = getColumnValueFromCursor(c, ContactsContract.Contacts.DISPLAY_NAME);
-                EditText contactTextBox = (EditText) findViewById(R.id.contact_textbox);
-                contactTextBox.setText(name);
+                EditText contactTextBox = (EditText) findViewById(R.id.contact_text_box);
+                    Editable contactText = contactTextBox.getText();
+                if(contactText.length()!=0) {
+                    contactText.append("\n");
+                }
+                contactText.append(name);
                 if (Integer.parseInt(c.getString(
                         c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
                     String contactId = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
@@ -87,8 +134,7 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
                     if(contacts.moveToFirst())
                     {
                         String contactNumber = getColumnValueFromCursor(contacts, ContactsContract.CommonDataKinds.Phone.NUMBER);
-                        EditText phoneNumberEditView = (EditText) findViewById(R.id.phone_number_hidden);
-                        phoneNumberEditView.setText(contactNumber);
+                        phoneNumberList.add(contactNumber);
                     }
                 }
             }
@@ -100,23 +146,17 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
     }
 
     private Cursor getContacts(String contactId) {
-        // Run query
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
         String[] projection = new String[] { ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
                                              ContactsContract.CommonDataKinds.Phone.NUMBER};
         String selection = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = '"
                 + contactId + "'";
-        String[] selectionArgs = null;
-        String sortOrder = ContactsContract.Contacts.DISPLAY_NAME
-                + " COLLATE LOCALIZED ASC";
 
-        return new ContextWrapper(this).getContentResolver().query(uri, projection, selection, selectionArgs,
+        return new ContextWrapper(this).getContentResolver().query(uri, projection, selection, null,
                 null);
     }
 
     private void RefreshScheduledTaskStatusInView() {
-        TimePicker timePicker = (TimePicker) findViewById(R.id.timePicker);
-        timePicker.setIs24HourView(true);
         Button stopTrackButton = (Button) findViewById(R.id.stop);
         TextView runningTaskTextView = (TextView) findViewById(R.id.running_task);
         String scheduledServiceDetails = getScheduledServiceDetail();
@@ -137,14 +177,11 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
     }
 
     public void startTrack(View view) {
-        EditText phoneEditText = (EditText) findViewById(R.id.phone_number_hidden);
-        TimePicker timePicker = (TimePicker) findViewById(R.id.timePicker);
-        Integer scheduledHour = timePicker.getCurrentHour();
-        Integer scheduledMinute = timePicker.getCurrentMinute();
-        int scheduledPeriodInMilliseconds = getInMilliseconds(scheduledHour, scheduledMinute);
-        String phoneNumber = phoneEditText.getText().toString();
+        TimePicker timePicker = new TimePicker(this);
+        int scheduledPeriodInMilliseconds = getInMilliseconds(scheduledHour, scheduledMin);
+        String phoneNumber = phoneNumberList.get(0);
         schedulePeriodicTask(phoneNumber, scheduledPeriodInMilliseconds);
-        logAsServiceRunning(phoneNumber, scheduledHour, scheduledMinute);
+        logAsServiceRunning(phoneNumber, scheduledHour, scheduledMin);
         RefreshScheduledTaskStatusInView();
     }
 

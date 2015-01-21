@@ -14,8 +14,9 @@
         android:text="Track"
         android:id="@+id/track_button"
         android:onClick="startTrack"
-        android:layout_below="@+id/timePicker"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/contact_image_button"
+        android:layout_toEndOf="@+id/contact_image_button" />
 
     <Button
         android:layout_width="wrap_content"
@@ -23,55 +24,7 @@
         android:text="stopTracking"
         android:id="@+id/stop"
         android:onClick="stopPeriodicTask"
-        android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/timePicker"
-        android:layout_alignEnd="@+id/timePicker" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="phone number"
-        android:id="@+id/phone_number"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:textColor="@color/primary_dark_material_dark" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Repeat Time"
-        android:id="@+id/textView"
-        android:textColor="@color/primary_dark_material_dark"
-        android:layout_alignTop="@+id/timePicker"
-        android:layout_alignRight="@+id/phone_number"
-        android:layout_alignEnd="@+id/phone_number"
-        android:layout_marginTop="120dp" />
-
-    <EditText
-        android:layout_width="120dp"
-        android:layout_height="25dp"
-        android:inputType="textMultiLine"
-        android:id="@+id/contact_textbox"
-        android:background="#FFFFFF"
-        android:textColor="@color/primary_dark_material_dark"
-        android:editable="false"
-        android:enabled="false"
-        android:layout_alignTop="@+id/phone_number"
-        android:layout_alignBottom="@+id/phone_number"
-        android:layout_alignLeft="@+id/track_button"
-        android:layout_alignStart="@+id/track_button"
-        android:focusable="true"
-        android:visibility="visible"
-        android:selectAllOnFocus="false" />
-
-    <TimePicker
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/timePicker"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="47dp" />
+        android:layout_alignParentBottom="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -82,32 +35,78 @@
         android:layout_alignParentStart="true" />
 
     <Button
+        style="?android:attr/buttonStyleSmall"
         android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:id="@+id/contact_button"
-        android:background="@drawable/person"
-        android:layout_alignRight="@+id/timePicker"
-        android:layout_alignEnd="@+id/timePicker" />
+        android:layout_height="45dp"
+        android:id="@+id/clear_contact"
+        android:background="@drawable/clear_combo"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
-    <EditText
-        android:layout_width="235dp"
-        android:layout_height="0dp"
-        android:inputType="phone"
-        android:ems="10"
-        android:id="@+id/phone_number_hidden"
-        android:visibility="invisible"
-        android:layout_alignTop="@+id/timePicker"
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set Repeat Time"
+        android:id="@+id/Repeat_Time"
+        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="80dp"
+        android:layout_height="40dp"
+        android:inputType="time"
+        android:ems="10"
+        android:id="@+id/repeat_time_textbox"
+        android:layout_marginLeft="36dp"
+        android:layout_marginStart="36dp"
+        android:layout_toRightOf="@+id/Repeat_Time"
+        android:layout_toEndOf="@+id/Repeat_Time"
+        android:layout_alignBottom="@+id/Repeat_Time" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/contact_image_button"
+        android:src="@drawable/person"
+        android:layout_below="@+id/Repeat_Time"
+        android:layout_toLeftOf="@+id/repeat_time_textbox"
+        android:layout_toStartOf="@+id/repeat_time_textbox"
+        android:layout_marginTop="34dp" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/contact_text_box"
+        android:maxLines="3"
+        android:layout_below="@+id/contact_image_button"
+        android:layout_alignRight="@+id/repeat_time_textbox"
+        android:layout_alignEnd="@+id/repeat_time_textbox"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:maxHeight="5dp" />
 
     <Button
         style="?android:attr/buttonStyleSmall"
         android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:id="@+id/clear"
+        android:layout_height="45dp"
+        android:id="@+id/clear_time"
         android:background="@drawable/clear_combo"
-        android:layout_alignTop="@+id/contact_textbox"
-        android:layout_toRightOf="@+id/phone_number_hidden"
-        android:layout_toEndOf="@+id/phone_number_hidden" />
+        android:layout_alignBottom="@+id/repeat_time_textbox"
+        android:layout_alignLeft="@+id/clear_contact"
+        android:layout_alignStart="@+id/clear_contact" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add"
+        android:id="@+id/add_text_view"
+        android:layout_above="@+id/contact_text_box"
+        android:layout_toRightOf="@+id/running_task"
+        android:layout_alignTop="@+id/contact_image_button"
+        android:layout_toLeftOf="@+id/contact_image_button"
+        android:layout_toStartOf="@+id/contact_image_button"
+        android:textIsSelectable="false"
+        android:textSize="25dp" />
 
 </RelativeLayout>
