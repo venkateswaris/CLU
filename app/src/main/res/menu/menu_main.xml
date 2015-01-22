@@ -2,6 +2,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.venkateswaris.clu.PeriodicLocationUpdateActivity">
+    <item
+        android:id="@+id/clear_all_icon"
+        android:orderInCategory="0"
+        app:showAsAction="always"
+        android:icon="@drawable/clear_combo"
+        android:title="icon"/>
+
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
 </menu>

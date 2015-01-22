@@ -22,7 +22,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.TimePicker;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -40,8 +39,6 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
     private int scheduledHour = 0;
     private int scheduledMin = 0;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,12 +52,12 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
     }
 
     private void BindOnClickEventToClearTimeButton() {
-        Button contactButton = (Button) findViewById(R.id.clear_time);
-        contactButton.setOnClickListener(new View.OnClickListener() {
+        Button timeButton = (Button) findViewById(R.id.clear_time);
+        timeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TextView contactTextBox = (TextView) findViewById(R.id.repeat_time_textbox);
-                contactTextBox.setText(null);
+                TextView timeTextBox = (TextView) findViewById(R.id.repeat_time_textbox);
+                timeTextBox.setText(null);
                 scheduledMin = 0;
                 scheduledHour = 0;
             }
@@ -177,7 +174,6 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
     }
 
     public void startTrack(View view) {
-        TimePicker timePicker = new TimePicker(this);
         int scheduledPeriodInMilliseconds = getInMilliseconds(scheduledHour, scheduledMin);
         String phoneNumber = phoneNumberList.get(0);
         schedulePeriodicTask(phoneNumber, scheduledPeriodInMilliseconds);
@@ -238,11 +234,16 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
+        if(id == R.id.clear_all_icon) {
+            TextView timeTextBox = (TextView) findViewById(R.id.repeat_time_textbox);
+            timeTextBox.setText(null);
+            scheduledMin = 0;
+            scheduledHour = 0;
+            TextView contactTextBox = (TextView) findViewById(R.id.contact_text_box);
+            contactTextBox.setText(null);
+            phoneNumberList = new ArrayList<String>();
+        }
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;

@@ -40,6 +40,7 @@
         android:layout_height="45dp"
         android:id="@+id/clear_contact"
         android:background="@drawable/clear_combo"
+        android:layout_above="@+id/contact_text_box"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 
@@ -92,9 +93,9 @@
         android:layout_height="45dp"
         android:id="@+id/clear_time"
         android:background="@drawable/clear_combo"
-        android:layout_alignBottom="@+id/repeat_time_textbox"
-        android:layout_alignLeft="@+id/clear_contact"
-        android:layout_alignStart="@+id/clear_contact" />
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <TextView
         android:layout_width="wrap_content"
