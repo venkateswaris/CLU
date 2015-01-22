@@ -33,11 +33,6 @@
             android:name=".LocationUpdateService"
             android:exported="true" >
         </service>
-
-        <activity
-            android:name=".ContactListViewActivity"
-            android:label="@string/title_activity_contact_list_view" >
-        </activity>
     </application>
 
 </manifest>
