@@ -37,7 +37,7 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
     private final int requestCode = 1;
     private ArrayList<String> phoneNumberList = new ArrayList<>();
     private int scheduledHour = 0;
-    private int scheduledMin = 0;
+    private int scheduledMin = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +49,75 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
         BindOnClickEventToClearTimeButton();
         BindOnClickEventToSetRepeatTimeButton();
         RefreshScheduledTaskStatusInView();
+    }
+
+    @Override
+    public void onActivityResult(int reqCode, int resultCode, Intent data) {
+        super.onActivityResult(reqCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            Uri contactData = data.getData();
+            Cursor c = managedQuery(contactData, null, null, null, null);
+            if (c.moveToFirst()) {
+                String name = getColumnValueFromCursor(c, ContactsContract.Contacts.DISPLAY_NAME);
+                EditText contactTextBox = (EditText) findViewById(R.id.contact_text_box);
+                    Editable contactText = contactTextBox.getText();
+                if(contactText.length()!=0) {
+                    contactText.append("\n");
+                }
+                contactText.append(name);
+                if (Integer.parseInt(c.getString(
+                        c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
+                    String contactId = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
+                    Cursor contacts = getContacts(contactId);
+                    if(contacts.moveToFirst())
+                    {
+                        String contactNumber = getColumnValueFromCursor(contacts, ContactsContract.CommonDataKinds.Phone.NUMBER);
+                        phoneNumberList.add(contactNumber);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    public void startTrack(View view) {
+        int scheduledPeriodInMilliseconds = getInMilliseconds(scheduledHour, scheduledMin);
+        String phoneNumber = phoneNumberList.get(0);
+        schedulePeriodicTask(phoneNumber, scheduledPeriodInMilliseconds);
+        logAsServiceRunning(phoneNumber, scheduledHour, scheduledMin);
+        RefreshScheduledTaskStatusInView();
+    }
+
+    public void stopPeriodicTask(View view) {
+        Log.i("", "Stopped Tracking");
+        alarmService.cancel(pIntent);
+        removeServiceStatusLog();
+        RefreshScheduledTaskStatusInView();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if(id == R.id.clear_all_icon) {
+            TextView timeTextBox = (TextView) findViewById(R.id.repeat_time_textbox);
+            timeTextBox.setText(null);
+            scheduledMin = 0;
+            scheduledHour = 0;
+            TextView contactTextBox = (TextView) findViewById(R.id.contact_text_box);
+            contactTextBox.setText(null);
+            phoneNumberList = new ArrayList<String>();
+        }
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private void BindOnClickEventToClearTimeButton() {
@@ -110,33 +179,6 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
         });
     }
 
-    @Override
-    public void onActivityResult(int reqCode, int resultCode, Intent data) {
-        super.onActivityResult(reqCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            Uri contactData = data.getData();
-            Cursor c = managedQuery(contactData, null, null, null, null);
-            if (c.moveToFirst()) {
-                String name = getColumnValueFromCursor(c, ContactsContract.Contacts.DISPLAY_NAME);
-                EditText contactTextBox = (EditText) findViewById(R.id.contact_text_box);
-                    Editable contactText = contactTextBox.getText();
-                if(contactText.length()!=0) {
-                    contactText.append("\n");
-                }
-                contactText.append(name);
-                if (Integer.parseInt(c.getString(
-                        c.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
-                    String contactId = c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
-                    Cursor contacts = getContacts(contactId);
-                    if(contacts.moveToFirst())
-                    {
-                        String contactNumber = getColumnValueFromCursor(contacts, ContactsContract.CommonDataKinds.Phone.NUMBER);
-                        phoneNumberList.add(contactNumber);
-                    }
-                }
-            }
-        }
-    }
 
     private String getColumnValueFromCursor(Cursor c, String columnName) {
         return c.getString(c.getColumnIndexOrThrow(columnName));
@@ -167,28 +209,7 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    public void startTrack(View view) {
-        int scheduledPeriodInMilliseconds = getInMilliseconds(scheduledHour, scheduledMin);
-        String phoneNumber = phoneNumberList.get(0);
-        schedulePeriodicTask(phoneNumber, scheduledPeriodInMilliseconds);
-        logAsServiceRunning(phoneNumber, scheduledHour, scheduledMin);
-        RefreshScheduledTaskStatusInView();
-    }
-
-    public void stopPeriodicTask(View view) {
-        Log.i("", "Stopped Tracking");
-        alarmService.cancel(pIntent);
-        removeServiceStatusLog();
-        RefreshScheduledTaskStatusInView();
-    }
-
-    private void removeServiceStatusLog() {
+      private void removeServiceStatusLog() {
         File dir = getFilesDir();
         File file = new File(dir, fileName);
         file.delete();
@@ -229,26 +250,5 @@ public class PeriodicLocationUpdateActivity extends ActionBarActivity {
         pIntent = PendingIntent.getBroadcast(this, CLUServiceBroadcastReceiver.REQUEST_CODE,
                 serviceBroadCasterIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         alarmService.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), intervalMillis, pIntent);
-    }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if(id == R.id.clear_all_icon) {
-            TextView timeTextBox = (TextView) findViewById(R.id.repeat_time_textbox);
-            timeTextBox.setText(null);
-            scheduledMin = 0;
-            scheduledHour = 0;
-            TextView contactTextBox = (TextView) findViewById(R.id.contact_text_box);
-            contactTextBox.setText(null);
-            phoneNumberList = new ArrayList<String>();
-        }
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 }
